@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author liuduck
  * @since 2022-06-14
  */
-@RestController
-@RequestMapping("/word")
+@RestController("/word")
 public class WordController {
 
 }

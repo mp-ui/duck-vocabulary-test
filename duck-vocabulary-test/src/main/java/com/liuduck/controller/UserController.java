@@ -1,6 +1,6 @@
 package com.liuduck.controller;
 
-import com.liuduck.entity.Result;
+import com.liuduck.common.Result;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -19,8 +19,7 @@ import java.util.Random;
  * @author lzk
  * @since 2022-06-14
  */
-@RestController
-@RequestMapping("/user")
+@RestController("/user")
 public class UserController {
 
     @Autowired
