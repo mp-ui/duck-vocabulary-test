@@ -24,8 +24,4 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/word")
 public class WordController {
-    @RequestMapping("/test")
-    public Result login(){
-        return Result.succ("你好");
-    }
 }
