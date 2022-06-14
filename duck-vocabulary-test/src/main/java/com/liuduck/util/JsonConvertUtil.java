@@ -3,6 +3,7 @@ package com.liuduck.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.liuduck.entity.Word;
+import com.liuduck.enums.ClassificationEnum;
 import com.liuduck.mapper.WordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,31 +27,55 @@ public class JsonConvertUtil {
     @Resource
     private WordMapper wordMapper;
 
-    public static void func() {
+    public void wordsToDataBase() {
+        // 初中
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\ChuZhong_2.json", ClassificationEnum.MIDDLE);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\ChuZhong_3.json", ClassificationEnum.MIDDLE);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\ChuZhongluan_2.json", ClassificationEnum.MIDDLE);
+        // 高中
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\GaoZhong_2.json", ClassificationEnum.HIGH);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\GaoZhong_3.json", ClassificationEnum.HIGH);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\GaoZhongluan_2.json", ClassificationEnum.HIGH);
+        // 专四
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level4_1.json", ClassificationEnum.TEM4);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level4_2.json", ClassificationEnum.TEM4);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level4luan_1.json", ClassificationEnum.TEM4);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level4luan_2.json", ClassificationEnum.TEM4);
+        // 专八
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level8_1.json", ClassificationEnum.TEM8);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level8_2.json", ClassificationEnum.TEM8);
+        insertWord("D:\\gitRepos\\duck-vocabulary-test\\duck-vocabulary-test\\Level8luan_2.json", ClassificationEnum.TEM8);
+    }
+
+    public void insertWord(String path, ClassificationEnum classify) {
 
         List<Word> wordList = new ArrayList<>();
 
-//        List<String> jsonList = getDataFromJsonFile("duck-vocabulary-test/CET6_1.json");
-        List<String> jsonList = getDataFromJsonFile("duck-vocabulary-test/CET4_3.json");
+        List<String> jsonList = getDataFromJsonFile(path);
 
         for (String json : jsonList) {
+
             JSONObject jsonObject = JSON.parseObject(json);
+
             String word = (String) jsonObject.get("headWord");
+
             String mean = (String) jsonObject.getJSONObject("content").
                     getJSONObject("word").
                     getJSONObject("content").
                     getJSONArray("trans").getJSONObject(0).get("tranCn");
-            wordList.add(new Word(word, 1, mean));
+
+            wordList.add(new Word(word, classify.getCode(), mean));
+
         }
 
         for (Word w : wordList) {
-            System.out.println(w);
+            wordMapper.insert(w);
         }
 
     }
 
 
-    public static List<String> getDataFromJsonFile(String jsonFilePath) {
+    public List<String> getDataFromJsonFile(String jsonFilePath) {
         List<String> jsonList = new ArrayList<>();
         File file = new File(jsonFilePath);
         if (file.exists()) {
