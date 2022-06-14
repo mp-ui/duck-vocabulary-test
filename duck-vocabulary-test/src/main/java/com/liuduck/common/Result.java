@@ -1,4 +1,4 @@
-package com.liuduck.entity;
+package com.liuduck.common;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.io.Serializable;
  * @Date 16:07 2022/6/14
  */
 @Data
-public class Result  implements Serializable {
+public class Result implements Serializable {
     private int code;
     private String msg;
     private Object data;
