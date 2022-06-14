@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 /**
  * <p>
@@ -15,6 +16,7 @@ import io.swagger.annotations.ApiModelProperty;
  * @since 2022-06-14
  */
 @ApiModel(value = "Word对象", description = "")
+@Data
 public class Word implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -32,42 +34,4 @@ public class Word implements Serializable {
     @ApiModelProperty("词意")
     private String mean;
 
-    public Integer getWid() {
-        return wid;
-    }
-
-    public void setWid(Integer wid) {
-        this.wid = wid;
-    }
-    public String getWord() {
-        return word;
-    }
-
-    public void setWord(String word) {
-        this.word = word;
-    }
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-    public String getMean() {
-        return mean;
-    }
-
-    public void setMean(String mean) {
-        this.mean = mean;
-    }
-
-    @Override
-    public String toString() {
-        return "Word{" +
-            "wid=" + wid +
-            ", word=" + word +
-            ", status=" + status +
-            ", mean=" + mean +
-        "}";
-    }
 }
