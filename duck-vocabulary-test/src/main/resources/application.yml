@@ -19,7 +19,6 @@ spring:
         smtp:
           ssl:
             enable: true
-
   redis:
     host: 101.33.200.230
     port: 6379
@@ -31,6 +30,9 @@ spring:
         max-idle: 8
         max-active: 8
         max-wait: -1ms
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**Mapper.xml
