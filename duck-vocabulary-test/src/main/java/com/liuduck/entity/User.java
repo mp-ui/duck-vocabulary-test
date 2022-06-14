@@ -2,19 +2,23 @@ package com.liuduck.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author liuduck
  * @since 2022-06-14
  */
 @ApiModel(value = "User对象", description = "")
+@Data
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -35,50 +39,7 @@ public class User implements Serializable {
     @ApiModelProperty("头像")
     private String avatar;
 
-    public Integer getUid() {
-        return uid;
-    }
+    @ApiModelProperty("密码")
+    private String password;
 
-    public void setUid(Integer uid) {
-        this.uid = uid;
-    }
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    public Integer getGender() {
-        return gender;
-    }
-
-    public void setGender(Integer gender) {
-        this.gender = gender;
-    }
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-            "uid=" + uid +
-            ", nickname=" + nickname +
-            ", email=" + email +
-            ", gender=" + gender +
-            ", avatar=" + avatar +
-        "}";
-    }
 }
