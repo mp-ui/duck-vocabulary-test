@@ -1,13 +1,11 @@
 package com.liuduck.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.liuduck.entity.User;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -17,10 +15,10 @@ import java.util.concurrent.TimeUnit;
  * @Date 20:17 2022/6/14
  */
 public class RefreshTokenInterceptor implements HandlerInterceptor {
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
-    public RefreshTokenInterceptor(StringRedisTemplate stringRedisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
+    public RefreshTokenInterceptor(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -29,20 +27,19 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
 
         //查看浏览器中是否存在authorization
         if (token==null){
-            //未登录过，拦截进行登录
+            //未登录过，直接放行
             return true;
         }
 
         //token不为空,直接更新时间
-        String user= stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_USER_KEY + token);
+        User user= (User)redisTemplate.opsForValue().get(RedisConstants.LOGIN_USER_KEY + token);
         if (user==null){
             return true;
         }
-        //解析成java对象 保存信息到ThreadLocal
-        User parse = (User)JSON.parse(user);
-        UserHolder.saveUser(parse);
+        //保存信息到ThreadLocal
+        UserHolder.saveUser(user);
         //刷新过期时间
-        stringRedisTemplate.expire(RedisConstants.LOGIN_USER_KEY + token,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+        redisTemplate.expire(RedisConstants.LOGIN_USER_KEY + token,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         return true;
     }
 
