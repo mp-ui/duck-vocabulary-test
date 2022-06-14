@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author liuduck
  * @since 2022-06-14
  */
-@RestController("/score")
+@RestController
+@RequestMapping("/score")
 public class ScoreController {
 
 }

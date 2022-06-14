@@ -9,7 +9,7 @@ import lombok.Data;
 
 /**
  * <p>
- *
+ * 
  * </p>
  *
  * @author liuduck
@@ -34,12 +34,4 @@ public class Word implements Serializable {
     @ApiModelProperty("词意")
     private String mean;
 
-    public Word() {
-    }
-
-    public Word(String word, Integer status, String mean) {
-        this.word = word;
-        this.status = status;
-        this.mean = mean;
-    }
 }
