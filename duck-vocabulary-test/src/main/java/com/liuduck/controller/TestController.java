@@ -3,9 +3,11 @@ package com.liuduck.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liuduck.common.Result;
 import com.liuduck.dto.OptionDTO;
+import com.liuduck.entity.Score;
 import com.liuduck.entity.Word;
 import com.liuduck.enums.ClassificationEnum;
 import com.liuduck.enums.ScoreIncrementEnum;
+import com.liuduck.service.IScoreService;
 import com.liuduck.service.IWordService;
 import com.liuduck.vo.OptionVO;
 import io.swagger.annotations.Api;
@@ -13,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -31,6 +34,9 @@ public class TestController {
 
     @Autowired
     private IWordService wordService;
+
+    @Autowired
+    private IScoreService scoreService;
 
     @ApiOperation("进行词汇测试")
     @PostMapping("/estimate")
@@ -65,14 +71,17 @@ public class TestController {
 
             result.setCode(200);
             result.setData(optionVO);
-        } else if (optionDTO.getNum() == 10) {
+        } else if (optionDTO.getNum() == 15) {
             int score = optionDTO.getScore();
             // 全部提交，统计分数
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
             int ctnwrong = optionDTO.getCtnwrong();
             int wrong = optionDTO.getWrong();
-            if (!isCorrect) {
+            if(optionDTO.getOption() == 0) {
                 ctnwrong++;
+                wrong++;
+            } else if (!isCorrect) {
+                ctnwrong += 2;
                 wrong++;
             }
 
@@ -82,14 +91,27 @@ public class TestController {
             result.setCode(200);
             result.setData(score);
 
+
+            // 提交到数据库
+            Score scoreEntity = new Score();
+            scoreEntity.setScore((double) score);
+            scoreEntity.setUid(optionDTO.getId());
+            scoreEntity.setTime(LocalDateTime.now());
+            scoreEntity.setRightcount(15 - wrong);
+
+            scoreService.saveOrUpdate(scoreEntity);
+
         } else {
             int score = optionDTO.getScore();
-            // 全部提交，统计分数
+
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
             int ctnwrong = optionDTO.getCtnwrong();
             int wrong = optionDTO.getWrong();
-            if (!isCorrect) {
+            if(optionDTO.getOption() == 0) {
                 ctnwrong++;
+                wrong++;
+            } else if (!isCorrect) {
+                ctnwrong += 2;
                 wrong++;
             }
 
