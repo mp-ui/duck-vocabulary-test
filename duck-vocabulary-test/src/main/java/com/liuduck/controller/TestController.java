@@ -1,11 +1,20 @@
 package com.liuduck.controller;
 
-import com.liuduck.common.CommonResult;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.liuduck.common.Result;
+import com.liuduck.dto.OptionDTO;
+import com.liuduck.entity.Word;
+import com.liuduck.enums.ClassificationEnum;
+import com.liuduck.enums.ScoreIncrementEnum;
 import com.liuduck.service.IWordService;
+import com.liuduck.vo.OptionVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Random;
 
 /**
  * <p>
@@ -15,32 +24,129 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wyt
  * @since 2022-06-14
  */
-@RestController("/test")
+@Api("词汇测试")
+@RestController
+@RequestMapping("/test")
 public class TestController {
 
     @Autowired
     private IWordService wordService;
 
-    @PostMapping("/{id}")
-    public CommonResult vocabularyEstimate(@PathVariable("id") Integer id, Integer num, Integer option, Integer answer, Integer score) {
-        CommonResult result = new CommonResult();
-        // 开始测试
-        if (num == 0) {
-            // 提取一个初中的词汇和释义，还有三个其他单词的释义
-            wordService.getById(100);
+    @ApiOperation("进行词汇测试")
+    @PostMapping("/estimate")
+    public Result vocabularyTest(@RequestBody OptionDTO optionDTO) {
+        Result result = new Result();
 
-            // 打乱，并指明正确的选项
+        // 开始测试
+        if (optionDTO.getNum() == 0) {
+            OptionVO optionVO = new OptionVO();
+
+            // 初试分数为 500
+            optionVO.setScore(500);
+            optionVO.setWrong(0);
+            optionVO.setCtnwrong(0);
+
+            // 提取一个初中的词汇和释义，还有三个其他单词的释义
+            QueryWrapper<Word> wordQueryWrapper = new QueryWrapper<>();
+            wordQueryWrapper.eq("status", 1);
+            List<Word> wordList = wordService.list(wordQueryWrapper);
+
+            Random random = new Random();
+            int num = random.nextInt(wordList.size());
+            Word word = wordList.get(num);
+            optionVO.setWord(word.getWord());
+            optionVO.setAnswer(word.getMean());
+
+            // 正确的选项的位置(1~4)
+            optionVO.setAnswerPos(random.nextInt(4) + 1);
+            optionVO.setOption1(wordList.get((num + 200) % wordList.size()).getMean());
+            optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
+            optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
+
+            result.setCode(200);
+            result.setData(optionVO);
+        } else if (optionDTO.getNum() == 10) {
+            int score = optionDTO.getScore();
+            // 全部提交，统计分数
+            boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
+            int ctnwrong = optionDTO.getCtnwrong();
+            int wrong = optionDTO.getWrong();
+            if (!isCorrect) {
+                ctnwrong++;
+                wrong++;
+            }
+
+            score = calScore(score, isCorrect, ctnwrong);
+
+            // 返回一个分数
+            result.setCode(200);
+            result.setData(score);
 
         } else {
+            int score = optionDTO.getScore();
+            // 全部提交，统计分数
+            boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
+            int ctnwrong = optionDTO.getCtnwrong();
+            int wrong = optionDTO.getWrong();
+            if (!isCorrect) {
+                ctnwrong++;
+                wrong++;
+            }
 
+            score = calScore(score, isCorrect, ctnwrong);
+
+            OptionVO optionVO = new OptionVO();
+
+            // 初试分数为 500
+            optionVO.setScore(score);
+            optionVO.setWrong(wrong);
+            optionVO.setCtnwrong(ctnwrong);
+
+            int status = ClassificationEnum.getStatus(score);
 
             // 提取一个初中的词汇和释义，还有三个其他单词的释义
-            wordService.getById(100);
+            QueryWrapper<Word> wordQueryWrapper = new QueryWrapper<>();
+            wordQueryWrapper.eq("status", status);
+            List<Word> wordList = wordService.list(wordQueryWrapper);
 
-            // 打乱，并指明正确的选项
+            Random random = new Random();
+            int num = random.nextInt(wordList.size());
+            Word word = wordList.get(num);
+            optionVO.setWord(word.getWord());
+            optionVO.setAnswer(word.getMean());
 
+            // 正确的选项的位置(1~4)
+            optionVO.setAnswerPos(random.nextInt(4) + 1);
+            optionVO.setOption1(wordList.get((num + 200) % wordList.size()).getMean());
+            optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
+            optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
+
+            result.setCode(200);
+            result.setData(optionVO);
         }
 
         return result;
     }
+
+    /**
+     * 计算成绩
+     * @param score
+     * @param isCorrect
+     * @return
+     */
+    private int calScore(int score, boolean isCorrect, int ctnwrong) {
+        int scoreIncrement = 0;
+        if (ctnwrong < 5) {
+            scoreIncrement = ScoreIncrementEnum.getScoreIncrement(ctnwrong);
+        } else {
+            scoreIncrement = ScoreIncrementEnum.ZERO.getScoreIncrement();
+        }
+
+        if (!isCorrect) {
+            scoreIncrement = -scoreIncrement;
+        }
+
+        return score + scoreIncrement;
+    }
 }
+

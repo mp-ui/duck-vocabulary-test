@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @author liuduck
  * @since 2022-06-14
  */
-@RestController("/word")
+@RestController
+@RequestMapping("/word")
 public class WordController {
 }
