@@ -1,12 +1,14 @@
 package com.liuduck.controller;
 
 import com.liuduck.common.Result;
+import com.liuduck.dto.TestDto;
 import com.liuduck.service.IWordService;
+import com.liuduck.service.TestService;
+import com.liuduck.vo.TestVo;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -16,12 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wyt
  * @since 2022-06-14
  */
+@Api("词汇测试")
 @RestController
 @RequestMapping("/test")
 public class TestController {
 
     @Autowired
     private IWordService wordService;
+
+    @Autowired
+    private TestService testService;
 
     @PostMapping("/{id}")
     public Result vocabularyEstimate(@PathVariable("id") Integer id, Integer num, Integer option, Integer answer, Integer score) {
@@ -44,5 +50,12 @@ public class TestController {
         }
 
         return result;
+    }
+
+    @ApiOperation("进行词汇测试")
+    @PostMapping("/estimate")
+    public Result<TestVo> estimate(@RequestBody TestDto dto) {
+        TestVo testVo = testService.estimate(dto);
+        return Result.succ(testVo);
     }
 }
