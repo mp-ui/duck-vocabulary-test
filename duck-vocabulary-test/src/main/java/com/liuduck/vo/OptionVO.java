@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-@ApiModel("提供的选项")
+@ApiModel(value = "词汇量测试提供的选项", description = "词汇量测试提供的选项")
 @Data
 public class OptionVO {
     @ApiModelProperty("单词")

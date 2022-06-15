@@ -2,6 +2,9 @@ package com.liuduck.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -21,6 +24,7 @@ public class Score implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty("uid")
+    @TableId(value = "uid", type = IdType.AUTO)
     private Integer uid;
 
     @ApiModelProperty("正确得个数")
