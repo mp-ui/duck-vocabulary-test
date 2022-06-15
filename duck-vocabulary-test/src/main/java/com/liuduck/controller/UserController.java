@@ -14,8 +14,11 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +39,7 @@ public class UserController {
     private IUserService userService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-    @Autowired
+    @Resource
     JavaMailSenderImpl mailSender;
 
     /**
@@ -56,13 +59,36 @@ public class UserController {
         }
         //生成token
         String token = UUID.randomUUID().toString();
-        token = RedisConstants.LOGIN_USER_KEY+token.replace("-", "");
+        token = token.replace("-", "");
         //存进redis
         redisTemplate.opsForValue().set(RedisConstants.LOGIN_USER_KEY+token,user,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
-        //返回token回前端
-        return Result.succ(token);
+        //返回token、user回前端
+        Map<String,Object>map=new HashMap<>();
+        map.put("token",token);
+        map.put("user",user);
+        return Result.succ(map);
     }
 
+    /**
+     * 获得登录的用户信息
+     * @param request
+     * @return
+     */
+    @RequestMapping("/getLoginUser")
+    public Result getLoginUser(HttpServletRequest request){
+        String token = request.getHeader("authorization");
+        User user=(User)redisTemplate.opsForValue().get(RedisConstants.LOGIN_USER_KEY+token);
+        if (user==null){
+            return Result.fail("登录已过期，请重新登录");
+        }
+        return Result.succ(user);
+    }
+
+    /**
+     * 退出登录
+     * @param request
+     * @return
+     */
     @RequestMapping("/logout")
     public Result logout(HttpServletRequest request){
         String token = request.getHeader("authorization");
@@ -137,4 +163,5 @@ public class UserController {
         mailSender.send(mailMessage);
         return Result.succ(null);
     }
+
 }
