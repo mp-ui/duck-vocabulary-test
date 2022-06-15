@@ -28,7 +28,7 @@ public class SwaggerConfig {
                 //apis() 控制哪些接口暴露给swagger，
                 // RequestHandlerSelectors.any() 所有都暴露
                 // RequestHandlerSelectors.basePackage("com.info.*")  指定包位置
-                .apis(RequestHandlerSelectors.basePackage("com.yun.cloud.gap.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.liuduck"))
                 .paths(PathSelectors.any())
                 .build();
     }
