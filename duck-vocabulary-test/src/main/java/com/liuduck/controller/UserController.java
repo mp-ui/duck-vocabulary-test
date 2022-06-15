@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author lzk
@@ -44,16 +47,17 @@ public class UserController {
 
     /**
      * 登录
+     *
      * @param email
      * @param password
      * @return
      */
-    @RequestMapping("/login")
-    public Result login(@Param("email") String email, @Param("password") String password){
+    @PostMapping("/login")
+    public Result login(@Param("email") String email, @Param("password") String password) {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("email", email);
         User user = userService.getOne(wrapper);
-        if(user==null){
+        if (user == null) {
             //不存在该用户
             return Result.fail("该邮箱并未注册");
         }
@@ -61,24 +65,25 @@ public class UserController {
         String token = UUID.randomUUID().toString();
         token = token.replace("-", "");
         //存进redis
-        redisTemplate.opsForValue().set(RedisConstants.LOGIN_USER_KEY+token,user,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(RedisConstants.LOGIN_USER_KEY + token, user, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         //返回token、user回前端
-        Map<String,Object>map=new HashMap<>();
-        map.put("token",token);
-        map.put("user",user);
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", token);
+        map.put("user", user);
         return Result.succ(map);
     }
 
     /**
      * 获得登录的用户信息
+     *
      * @param request
      * @return
      */
-    @RequestMapping("/getLoginUser")
-    public Result getLoginUser(HttpServletRequest request){
+    @GetMapping("/getLoginUser")
+    public Result getLoginUser(@ApiIgnore HttpServletRequest request) {
         String token = request.getHeader("authorization");
-        User user=(User)redisTemplate.opsForValue().get(RedisConstants.LOGIN_USER_KEY+token);
-        if (user==null){
+        User user = (User) redisTemplate.opsForValue().get(RedisConstants.LOGIN_USER_KEY + token);
+        if (user == null) {
             return Result.fail("登录已过期，请重新登录");
         }
         return Result.succ(user);
@@ -86,14 +91,15 @@ public class UserController {
 
     /**
      * 退出登录
+     *
      * @param request
      * @return
      */
-    @RequestMapping("/logout")
-    public Result logout(HttpServletRequest request){
+    @GetMapping("/logout")
+    public Result logout(@ApiIgnore HttpServletRequest request) {
         String token = request.getHeader("authorization");
         //删除redis的token
-        redisTemplate.delete(RedisConstants.LOGIN_USER_KEY+token);
+        redisTemplate.delete(RedisConstants.LOGIN_USER_KEY + token);
         //删除Threadlocal的User
         UserHolder.removeUser();
         return Result.succ(null);
@@ -101,6 +107,7 @@ public class UserController {
 
     /**
      * 注册
+     *
      * @param email
      * @param password
      * @param gender
@@ -109,12 +116,12 @@ public class UserController {
      * @param s
      * @return
      */
-    @RequestMapping("/register")
+    @PostMapping("/register")
     public Result register(@Param("email") String email, @Param("password") String password,
-        @Param("gender") int gender,@Param("nickName") String nickName, @Param("code") String code, HttpSession s){
-        String session_code = (String)s.getAttribute("code");
-        if(session_code ==null)return Result.fail("还没有获取验证码~");
-        if(!code.equalsIgnoreCase(session_code)) {
+                           @Param("gender") int gender, @Param("nickName") String nickName, @Param("code") String code, @ApiIgnore HttpSession s) {
+        String session_code = (String) s.getAttribute("code");
+        if (session_code == null) return Result.fail("还没有获取验证码~");
+        if (!code.equalsIgnoreCase(session_code)) {
             //验证码错误
             return Result.fail("验证码输入错误！");
         }
@@ -122,11 +129,11 @@ public class UserController {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("email", email);
         User obj = userService.getOne(wrapper);
-        if(obj!=null) {
+        if (obj != null) {
             return Result.fail("该邮箱已被注册！");
         }
         //存储到数据库
-        User user =new User().setAvatar("https://s1.ax1x.com/2022/06/14/XIBgmj.png")
+        User user = new User().setAvatar("https://s1.ax1x.com/2022/06/14/XIBgmj.png")
                 .setEmail(email).setGender(gender).setNickname(nickName).setPassword(password).setUid(null);
         userService.save(user);
 
@@ -136,25 +143,25 @@ public class UserController {
 
     /**
      * 获得验证码
+     *
      * @param s
      * @return
      */
-    @RequestMapping("/getCode")
-    public Result getCode(@Param("email") String email,HttpSession s){
+    @GetMapping("/getCode")
+    public Result getCode(@Param("email") String email, @ApiIgnore HttpSession s) {
         //生成验证码
-        String str="qwertyuiopasdfghjklzxcvbnmABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb=new StringBuilder(4);
-        for(int i=0;i<4;i++)
-        {
-            char ch=str.charAt(new Random().nextInt(str.length()));
+        String str = "qwertyuiopasdfghjklzxcvbnmABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder(4);
+        for (int i = 0; i < 4; i++) {
+            char ch = str.charAt(new Random().nextInt(str.length()));
             sb.append(ch);
         }
-        s.setAttribute("code",sb.toString());
+        s.setAttribute("code", sb.toString());
 
         //向用户邮箱发送验证码
-        SimpleMailMessage mailMessage=new SimpleMailMessage();
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setSubject("【608英语词汇测试】");
-        mailMessage.setText("欢迎您的注册,验证码:"+sb+"。请勿转发给他人，若是不是本人注册，不理会即可！");
+        mailMessage.setText("欢迎您的注册,验证码:" + sb + "。请勿转发给他人，若是不是本人注册，不理会即可！");
         //发送的对象
         mailMessage.setTo(email);
         //发件人
