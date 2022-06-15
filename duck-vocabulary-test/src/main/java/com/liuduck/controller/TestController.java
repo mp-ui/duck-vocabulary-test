@@ -21,7 +21,7 @@ import java.util.Random;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author wyt
@@ -40,74 +40,58 @@ public class TestController {
 
     @ApiOperation("进行词汇测试")
     @PostMapping("/estimate")
-    public Result vocabularyTest(@RequestBody OptionDTO optionDTO) {
-        Result result = new Result();
-
+    public Result<OptionVO> vocabularyTest(@RequestBody OptionDTO optionDTO) {
+        OptionVO optionVO = new OptionVO();
         // 开始测试
         if (optionDTO.getNum() == 0) {
-            OptionVO optionVO = new OptionVO();
-
             // 初试分数为 500
             optionVO.setScore(500);
             optionVO.setWrong(0);
             optionVO.setCtnwrong(0);
-
             // 提取一个初中的词汇和释义，还有三个其他单词的释义
             QueryWrapper<Word> wordQueryWrapper = new QueryWrapper<>();
             wordQueryWrapper.eq("status", 1);
             List<Word> wordList = wordService.list(wordQueryWrapper);
-
             Random random = new Random();
             int num = random.nextInt(wordList.size());
             Word word = wordList.get(num);
             optionVO.setWord(word.getWord());
             optionVO.setAnswer(word.getMean());
-
+            optionVO.setIsFinish(false);
             // 正确的选项的位置(1~4)
             optionVO.setAnswerPos(random.nextInt(4) + 1);
             optionVO.setOption1(wordList.get((num + 200) % wordList.size()).getMean());
             optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
             optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
-
-            result.setCode(200);
-            result.setData(optionVO);
         } else if (optionDTO.getNum() == 15) {
             int score = optionDTO.getScore();
             // 全部提交，统计分数
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
             int ctnwrong = optionDTO.getCtnwrong();
             int wrong = optionDTO.getWrong();
-            if(optionDTO.getOption() == 0) {
+            if (optionDTO.getOption() == 0) {
                 ctnwrong++;
                 wrong++;
             } else if (!isCorrect) {
                 ctnwrong += 2;
                 wrong++;
             }
-
             score = calScore(score, isCorrect, ctnwrong);
-
-            // 返回一个分数
-            result.setCode(200);
-            result.setData(score);
-
-
+            optionVO.setIsFinish(false);
+            optionVO.setScore(score);
             // 提交到数据库
             Score scoreEntity = new Score();
             scoreEntity.setScore((double) score);
             scoreEntity.setUid(optionDTO.getId());
             scoreEntity.setTime(LocalDateTime.now());
             scoreEntity.setRightcount(15 - wrong);
-
             scoreService.saveOrUpdate(scoreEntity);
-
         } else {
             int score = optionDTO.getScore();
-
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
             int ctnwrong = optionDTO.getCtnwrong();
             int wrong = optionDTO.getWrong();
-            if(optionDTO.getOption() == 0) {
+            if (optionDTO.getOption() == 0) {
                 ctnwrong++;
                 wrong++;
             } else if (!isCorrect) {
@@ -116,42 +100,34 @@ public class TestController {
             }
 
             score = calScore(score, isCorrect, ctnwrong);
-
-            OptionVO optionVO = new OptionVO();
-
             // 初试分数为 500
             optionVO.setScore(score);
             optionVO.setWrong(wrong);
             optionVO.setCtnwrong(ctnwrong);
-
             int status = ClassificationEnum.getStatus(score);
-
             // 提取一个初中的词汇和释义，还有三个其他单词的释义
             QueryWrapper<Word> wordQueryWrapper = new QueryWrapper<>();
             wordQueryWrapper.eq("status", status);
             List<Word> wordList = wordService.list(wordQueryWrapper);
-
             Random random = new Random();
             int num = random.nextInt(wordList.size());
             Word word = wordList.get(num);
             optionVO.setWord(word.getWord());
             optionVO.setAnswer(word.getMean());
-
+            optionVO.setIsFinish(false);
             // 正确的选项的位置(1~4)
             optionVO.setAnswerPos(random.nextInt(4) + 1);
             optionVO.setOption1(wordList.get((num + 200) % wordList.size()).getMean());
             optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
             optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
-
-            result.setCode(200);
-            result.setData(optionVO);
         }
 
-        return result;
+        return Result.succ(optionVO);
     }
 
     /**
      * 计算成绩
+     *
      * @param score
      * @param isCorrect
      * @return

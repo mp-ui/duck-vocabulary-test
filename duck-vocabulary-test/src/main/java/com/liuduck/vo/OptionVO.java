@@ -25,6 +25,9 @@ public class OptionVO {
     @ApiModelProperty("干扰项3")
     private String option3;
 
+    @ApiModelProperty("是否结束")
+    private Boolean isFinish;
+
     @ApiModelProperty("用户分数")
     private Integer score;
 
