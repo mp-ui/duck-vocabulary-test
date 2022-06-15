@@ -17,7 +17,7 @@ import javax.annotation.Resource;
  * @Description <类说明>MVC扩展
  * @Date 20:08 2022/6/14
  */
-@Configuration
+//@Configuration
 public class MVCConfig implements WebMvcConfigurer {
 
     @Autowired

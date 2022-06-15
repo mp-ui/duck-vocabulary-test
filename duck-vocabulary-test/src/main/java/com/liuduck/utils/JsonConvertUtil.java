@@ -1,4 +1,4 @@
-package com.liuduck.util;
+package com.liuduck.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
