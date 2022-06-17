@@ -2,26 +2,27 @@ package com.liuduck.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liuduck.common.Result;
+import com.liuduck.dto.LoginDto;
+import com.liuduck.dto.RegisterDto;
 import com.liuduck.entity.User;
 import com.liuduck.service.IUserService;
 import com.liuduck.utils.RedisConstants;
 import com.liuduck.utils.UserHolder;
+import com.liuduck.vo.LoginVo;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 @RestController
 @RequestMapping("/user")
+@Api("用户管理")
 public class UserController {
 
     @Autowired
@@ -53,13 +55,17 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
-    public Result login(@Param("email") String email, @Param("password") String password) {
+    @ApiOperation("用户登录")
+    public Result<LoginVo> login(@RequestBody LoginDto loginDto) {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
-        wrapper.eq("email", email);
+        wrapper.eq("email", loginDto.getEmail());
         User user = userService.getOne(wrapper);
         if (user == null) {
             //不存在该用户
             return Result.fail("该邮箱并未注册");
+        }
+        if(!StringUtils.equals(loginDto.getPassword(), user.getPassword())) {
+            return Result.fail("密码错误");
         }
         //生成token
         String token = UUID.randomUUID().toString();
@@ -67,10 +73,7 @@ public class UserController {
         //存进redis
         redisTemplate.opsForValue().set(RedisConstants.LOGIN_USER_KEY + token, user, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         //返回token、user回前端
-        Map<String, Object> map = new HashMap<>();
-        map.put("token", token);
-        map.put("user", user);
-        return Result.succ(map);
+        return Result.succ(new LoginVo(token, user));
     }
 
     /**
@@ -80,7 +83,8 @@ public class UserController {
      * @return
      */
     @GetMapping("/getLoginUser")
-    public Result getLoginUser(@ApiIgnore HttpServletRequest request) {
+    @ApiOperation("获取当前登录用户")
+    public Result<User> getLoginUser(@ApiIgnore HttpServletRequest request) {
         String token = request.getHeader("authorization");
         User user = (User) redisTemplate.opsForValue().get(RedisConstants.LOGIN_USER_KEY + token);
         if (user == null) {
@@ -96,6 +100,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/logout")
+    @ApiOperation("退出登录")
     public Result logout(@ApiIgnore HttpServletRequest request) {
         String token = request.getHeader("authorization");
         //删除redis的token
@@ -113,15 +118,19 @@ public class UserController {
      * @param gender
      * @param nickName
      * @param code
-     * @param s
      * @return
      */
     @PostMapping("/register")
-    public Result register(@Param("email") String email, @Param("password") String password,
-                           @Param("gender") int gender, @Param("nickName") String nickName, @Param("code") String code, @ApiIgnore HttpSession s) {
-        String session_code = (String) s.getAttribute("code");
-        if (session_code == null) return Result.fail("还没有获取验证码~");
-        if (!code.equalsIgnoreCase(session_code)) {
+    @ApiOperation("用户注册")
+    public Result<User> register(@RequestBody RegisterDto dto) {
+        String code = dto.getCode();
+        String email = dto.getEmail();
+        int gender = dto.getGender();
+        String password = dto.getPassword();
+        String nickName = dto.getNickName();
+        String redis_code = (String)redisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY+email);
+        if (redis_code == null) return Result.fail("还没有获取验证码~");
+        if (!code.equalsIgnoreCase(redis_code)) {
             //验证码错误
             return Result.fail("验证码输入错误！");
         }
@@ -143,32 +152,33 @@ public class UserController {
 
     /**
      * 获得验证码
-     *
-     * @param s
+     * @param email
      * @return
      */
     @GetMapping("/getCode")
-    public Result getCode(@Param("email") String email, @ApiIgnore HttpSession s) {
+    @ApiOperation("获取验证码")
+    public Result getCode(@RequestParam("email") String email) {
         //生成验证码
         String str = "qwertyuiopasdfghjklzxcvbnmABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder(4);
+        StringBuilder code = new StringBuilder(4);
         for (int i = 0; i < 4; i++) {
             char ch = str.charAt(new Random().nextInt(str.length()));
-            sb.append(ch);
+            code.append(ch);
         }
-        s.setAttribute("code", sb.toString());
+        //将验证码存储到redis 格式<register:code:{email},code>
+        redisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY+email,code,RedisConstants.LOGIN_CODE_TTL,TimeUnit.MINUTES);
 
         //向用户邮箱发送验证码
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setSubject("【608英语词汇测试】");
-        mailMessage.setText("欢迎您的注册,验证码:" + sb + "。请勿转发给他人，若是不是本人注册，不理会即可！");
+        mailMessage.setText("欢迎您的注册,验证码:" + code + ",有效时间10分钟。请勿转发给他人，若是不是本人注册，不理会即可！");
         //发送的对象
         mailMessage.setTo(email);
         //发件人
         mailMessage.setFrom("204967882@qq.com");
         //发送
         mailSender.send(mailMessage);
-        return Result.succ(null);
+        return Result.succ("发送成功");
     }
 
 }

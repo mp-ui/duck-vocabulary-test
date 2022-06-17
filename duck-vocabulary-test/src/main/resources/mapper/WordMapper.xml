@@ -2,4 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.liuduck.mapper.WordMapper">
 
+    <select id="getRankingList" resultType="com.liuduck.vo.RankingListVo">
+        select a.avatar, a.nickname, b.rightcount, b.score
+        from user a, score b
+        where a.uid = b.uid
+        ORDER BY b.score desc, b.rightcount desc
+        limit 10;
+    </select>
+
+    <select id="getWords" resultType="com.liuduck.vo.WordVo">
+        select word, mean
+        from word
+        where status = #{status}
+        limit #{page}, #{number};
+    </select>
+
 </mapper>

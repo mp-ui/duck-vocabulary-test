@@ -1,5 +1,7 @@
 package com.liuduck.common;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,9 +13,13 @@ import java.io.Serializable;
  * @Date 16:07 2022/6/14
  */
 @Data
+@Api("统一结果封装")
 public class Result<T> implements Serializable {
+    @ApiModelProperty("返回状态码，200为成功")
     private int code;
+    @ApiModelProperty("当返回状态码不是200时，提示的消息")
     private String msg;
+    @ApiModelProperty("当返回状态码是200时，返回的数据")
     private T data;
 
     //    成功
