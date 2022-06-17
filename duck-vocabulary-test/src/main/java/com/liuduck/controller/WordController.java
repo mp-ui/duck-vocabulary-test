@@ -9,11 +9,8 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2022-06-14
  */
 @RestController
+@CrossOrigin
 @RequestMapping("/word")
 public class WordController {
 
