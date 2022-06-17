@@ -118,20 +118,19 @@ public class UserController {
      * @param gender
      * @param nickName
      * @param code
-     * @param s
      * @return
      */
     @PostMapping("/register")
     @ApiOperation("用户注册")
-    public Result<User> register(@RequestBody RegisterDto dto, @ApiIgnore HttpSession s) {
+    public Result<User> register(@RequestBody RegisterDto dto) {
         String code = dto.getCode();
         String email = dto.getEmail();
         int gender = dto.getGender();
         String password = dto.getPassword();
         String nickName = dto.getNickName();
-        String session_code = (String) s.getAttribute("code");
-        if (session_code == null) return Result.fail("还没有获取验证码~");
-        if (!code.equalsIgnoreCase(session_code)) {
+        String redis_code = (String)redisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY+email);
+        if (redis_code == null) return Result.fail("还没有获取验证码~");
+        if (!code.equalsIgnoreCase(redis_code)) {
             //验证码错误
             return Result.fail("验证码输入错误！");
         }
@@ -153,33 +152,33 @@ public class UserController {
 
     /**
      * 获得验证码
-     *
-     * @param s
+     * @param email
      * @return
      */
     @GetMapping("/getCode")
     @ApiOperation("获取验证码")
-    public Result getCode(@RequestParam("email") String email, @ApiIgnore HttpSession s) {
+    public Result getCode(@RequestParam("email") String email) {
         //生成验证码
         String str = "qwertyuiopasdfghjklzxcvbnmABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder(4);
+        StringBuilder code = new StringBuilder(4);
         for (int i = 0; i < 4; i++) {
             char ch = str.charAt(new Random().nextInt(str.length()));
-            sb.append(ch);
+            code.append(ch);
         }
-        s.setAttribute("code", sb.toString());
+        //将验证码存储到redis 格式<register:code:{email},code>
+        redisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY+email,code,RedisConstants.LOGIN_CODE_TTL,TimeUnit.MINUTES);
 
         //向用户邮箱发送验证码
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setSubject("【608英语词汇测试】");
-        mailMessage.setText("欢迎您的注册,验证码:" + sb + "。请勿转发给他人，若是不是本人注册，不理会即可！");
+        mailMessage.setText("欢迎您的注册,验证码:" + code + ",有效时间10分钟。请勿转发给他人，若是不是本人注册，不理会即可！");
         //发送的对象
         mailMessage.setTo(email);
         //发件人
         mailMessage.setFrom("204967882@qq.com");
         //发送
         mailSender.send(mailMessage);
-        return Result.succ(null);
+        return Result.succ("发送成功");
     }
 
 }
