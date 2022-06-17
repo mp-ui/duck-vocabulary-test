@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/user")
 @Api("用户管理")
+@CrossOrigin
 public class UserController {
 
     @Autowired

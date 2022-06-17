@@ -29,6 +29,7 @@ import java.util.Random;
  */
 @Api("词汇测试")
 @RestController
+@CrossOrigin
 @RequestMapping("/test")
 public class TestController {
 

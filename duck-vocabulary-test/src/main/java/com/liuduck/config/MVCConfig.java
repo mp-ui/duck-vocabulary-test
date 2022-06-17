@@ -29,7 +29,7 @@ public class MVCConfig implements WebMvcConfigurer {
         //token刷新
         registry.addInterceptor(new RefreshTokenInterceptor(redisTemplate)).addPathPatterns("/**").order(0);
         //登录拦截
-        registry.addInterceptor(new LoginInterceptor()).addPathPatterns("/score/**","/word/**","/rankingList/**","/test/**")
+        registry.addInterceptor(new LoginInterceptor()).addPathPatterns("/test/**")
                 //放行的路径
                 .excludePathPatterns(
                         "/user/getCode",
