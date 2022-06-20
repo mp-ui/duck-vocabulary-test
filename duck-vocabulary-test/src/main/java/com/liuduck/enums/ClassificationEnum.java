@@ -14,11 +14,11 @@ import lombok.Getter;
 public enum ClassificationEnum {
     /** 初中, 0-2000 */
     MIDDLE(1, "初中"),
-    /** 高中, 2000-4000 */
+    /** 高中, 2000-3500 */
     HIGH(2, "高中"),
-    /** 专四, 4000-7500 */
+    /** 专四, 3500-5500 */
     TEM4(3, "专四"),
-    /** 专八, 7500-13000 */
+    /** 专八, 5500-8000 */
     TEM8(4, "专八");
 
     private final int code;
@@ -36,9 +36,9 @@ public enum ClassificationEnum {
     public static int getStatus(int score) {
         if (score < 2000) {
             return 1;
-        } else if (score < 4000) {
+        } else if (score < 3500) {
             return 2;
-        } else if (score < 7500) {
+        } else if (score < 5500) {
             return 3;
         } else  {
             return 4;

@@ -64,7 +64,7 @@ public class TestController {
             optionVO.setOption1(wordList.get((num + 200) % wordList.size()).getMean());
             optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
             optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
-        } else if (optionDTO.getNum() == 15) {
+        } else if (optionDTO.getNum() == 20) {
             int score = optionDTO.getScore();
             // 全部提交，统计分数
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
@@ -76,8 +76,16 @@ public class TestController {
             } else if (!isCorrect) {
                 ctnwrong += 2;
                 wrong++;
+            } else {
+                ctnwrong--;
             }
             score = calScore(score, isCorrect, ctnwrong);
+            if (score > 10000) {
+                score = 9000;
+            }
+            if(score < 2000) {
+                score = 135 * (20 - wrong);
+            }
             optionVO.setIsFinish(false);
             optionVO.setScore(score);
             // 提交到数据库
@@ -85,7 +93,7 @@ public class TestController {
             scoreEntity.setScore((double) score);
             scoreEntity.setUid(optionDTO.getId());
             scoreEntity.setTime(LocalDateTime.now());
-            scoreEntity.setRightcount(15 - wrong);
+            scoreEntity.setRightcount(20 - wrong);
             scoreService.saveOrUpdate(scoreEntity);
         } else {
             int score = optionDTO.getScore();
@@ -98,9 +106,14 @@ public class TestController {
             } else if (!isCorrect) {
                 ctnwrong += 2;
                 wrong++;
+            } else {
+                ctnwrong--;
             }
 
             score = calScore(score, isCorrect, ctnwrong);
+            if (score > 10000) {
+                score = 9000;
+            }
             // 初试分数为 500
             optionVO.setScore(score);
             optionVO.setWrong(wrong);
@@ -122,7 +135,6 @@ public class TestController {
             optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
             optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
         }
-
         return Result.succ(optionVO);
     }
 
