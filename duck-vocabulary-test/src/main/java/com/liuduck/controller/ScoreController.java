@@ -1,7 +1,7 @@
 package com.liuduck.controller;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2022-06-14
  */
 @RestController
+@CrossOrigin
 @RequestMapping("/score")
 public class ScoreController {
 
