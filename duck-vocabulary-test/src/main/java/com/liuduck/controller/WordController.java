@@ -2,6 +2,7 @@ package com.liuduck.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liuduck.common.Result;
+import com.liuduck.dto.WordQueryDto;
 import com.liuduck.entity.User;
 import com.liuduck.service.IWordService;
 import com.liuduck.utils.RedisConstants;
@@ -33,8 +34,9 @@ public class WordController {
 
     @ApiOperation("分页获取单词, status: 1初中，2高中，3专四，4专八；page：页号，number：数量")
     @PostMapping("/getWords")
-    public Result getWords(Integer status, Integer page, Integer number) {
-        return Result.succ(wordService.getWords(status, page, number));
+    public Result getWords(@RequestBody WordQueryDto dto) {
+        return Result.succ(wordService.getWords(dto.getStatus(), dto.getPage(), dto.getNumber()));
     }
+
 
 }
