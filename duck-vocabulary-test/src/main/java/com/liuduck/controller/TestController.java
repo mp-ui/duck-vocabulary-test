@@ -70,22 +70,33 @@ public class TestController {
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
             int ctnwrong = optionDTO.getCtnwrong();
             int wrong = optionDTO.getWrong();
+
+            score = calScore(score, isCorrect, ctnwrong);
+            if (score >= 10000) {
+                score = 9000;
+            }
+
             if (optionDTO.getOption() == 0) {
                 ctnwrong++;
                 wrong++;
             } else if (!isCorrect) {
-                ctnwrong += 2;
+                ctnwrong++;
                 wrong++;
+                score = calScore(score, isCorrect, ctnwrong);
+                ctnwrong++;
             } else {
-                ctnwrong--;
+                if(ctnwrong > 0) {
+                    ctnwrong--;
+                }
             }
-            score = calScore(score, isCorrect, ctnwrong);
-            if (score > 10000) {
-                score = 9000;
+            if (ctnwrong > 5) {
+                ctnwrong = 5;
             }
+
             if(score < 2000) {
                 score = 135 * (20 - wrong);
             }
+
             optionVO.setIsFinish(false);
             optionVO.setScore(score);
             // 提交到数据库
@@ -100,20 +111,30 @@ public class TestController {
             boolean isCorrect = optionDTO.getOption().equals(optionDTO.getAnswer());
             int ctnwrong = optionDTO.getCtnwrong();
             int wrong = optionDTO.getWrong();
+
+            score = calScore(score, isCorrect, ctnwrong);
+            if (score >= 10000) {
+                score = 9000;
+            }
+
             if (optionDTO.getOption() == 0) {
                 ctnwrong++;
                 wrong++;
             } else if (!isCorrect) {
-                ctnwrong += 2;
+                ctnwrong++;
                 wrong++;
+                score = calScore(score, isCorrect, ctnwrong);
+                ctnwrong++;
             } else {
-                ctnwrong--;
+                if(ctnwrong > 0) {
+                    ctnwrong--;
+                }
+            }
+            if (ctnwrong > 5) {
+                ctnwrong = 5;
             }
 
-            score = calScore(score, isCorrect, ctnwrong);
-            if (score > 10000) {
-                score = 9000;
-            }
+
             // 初试分数为 500
             optionVO.setScore(score);
             optionVO.setWrong(wrong);
@@ -135,6 +156,8 @@ public class TestController {
             optionVO.setOption2(wordList.get((num + 600) % wordList.size()).getMean());
             optionVO.setOption3(wordList.get((num + 1200) % wordList.size()).getMean());
         }
+        System.out.println(optionDTO.toString());
+        System.out.println(optionVO.toString());
         return Result.succ(optionVO);
     }
 
@@ -147,14 +170,19 @@ public class TestController {
      */
     private int calScore(int score, boolean isCorrect, int ctnwrong) {
         int scoreIncrement = 0;
-        if (ctnwrong < 5) {
-            scoreIncrement = ScoreIncrementEnum.getScoreIncrement(ctnwrong);
-        } else {
-            scoreIncrement = ScoreIncrementEnum.ZERO.getScoreIncrement();
-        }
 
         if (!isCorrect) {
-            scoreIncrement = -scoreIncrement;
+            if (ctnwrong < 4) {
+                scoreIncrement = -ScoreIncrementEnum.getScoreIncrement(ctnwrong + 1);
+            } else {
+                scoreIncrement = -ScoreIncrementEnum.ZERO.getScoreIncrement();
+            }
+        } else {
+            if (ctnwrong > 0) {
+                scoreIncrement = ScoreIncrementEnum.getScoreIncrement(ctnwrong - 1);
+            } else {
+                scoreIncrement = ScoreIncrementEnum.ZERO.getScoreIncrement();
+            }
         }
 
         return score + scoreIncrement;
